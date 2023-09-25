@@ -4,6 +4,6 @@ vagrant destroy --force
 rm -fr certificates bin
 vagrant up
 export PATH=`pwd`/bin:$PATH
-kubectl get componentstatuses --kubeconfig=certificates/admin.kubeconfig
+kubectl get --raw='/readyz?verbose' --kubeconfig=certificates/admin.kubeconfig
 kubectl get nodes --kubeconfig=certificates/admin.kubeconfig
 
