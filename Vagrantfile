@@ -7,12 +7,12 @@ Vagrant.configure(2) do |config|
   #config.vm.provision "shell", path: "base.sh"
 
   config.vm.define "kubemaster" do |node|
-  
+
     node.vm.box               = "debian/bookworm64"
     node.vm.hostname          = "kubemaster"
 
     node.vm.network "private_network", ip: "192.168.199.10"
-  
+
     node.vm.provider :virtualbox do |v|
       v.name    = "kubemaster"
       v.memory  = 1024
@@ -23,19 +23,20 @@ Vagrant.configure(2) do |config|
 
   # Kubernetes Worker Node
 
-    config.vm.define "worker0" do |node|
+  (0..2).each do |i|
+    config.vm.define "worker#{i}" do |node|
 
       node.vm.box               = "debian/bookworm64"
-      node.vm.hostname          = "worker0"
+      node.vm.hostname          = "worker#{i}"
 
-    node.vm.network "private_network", ip: "192.168.199.20"
+      node.vm.network "private_network", ip: "192.168.199.2#{i}"
 
-    node.vm.provider :virtualbox do |v|
-      v.name    = "worker0"
-      v.memory  = 2048
-      v.cpus    = 2
+      node.vm.provider :virtualbox do |v|
+        v.name    = "worker#{i}"
+        v.memory  = 1024
+        v.cpus    =  1
+      end
+      node.vm.provision "shell", path: "scripts/deploy-worker.sh"
     end
-    node.vm.provision "shell", path: "scripts/deploy-worker.sh"
-    end
-
+  end
 end

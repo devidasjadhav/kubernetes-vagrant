@@ -16,7 +16,7 @@ popd
 
 pushd /vagrant/certificates
 
-cat > openssl-worker0.cnf <<EOF
+cat > openssl-${HOSTNAME}.cnf <<EOF
 [req]
 req_extensions = v3_req
 distinguished_name = req_distinguished_name
@@ -26,38 +26,38 @@ basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 subjectAltName = @alt_names
 [alt_names]
-DNS.1 = worker0
+DNS.1 = ${HOSTNAME}
 IP.1 = ${WORKER_IP}
 EOF
 
-openssl genrsa -out worker0.key 2048
-openssl req -new -key worker0.key -subj "/CN=system:node:worker0/O=system:nodes" -out worker0.csr -config openssl-worker0.cnf
-openssl x509 -req -in worker0.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out worker0.crt -extensions v3_req -extfile openssl-worker0.cnf -days 1000
+openssl genrsa -out ${HOSTNAME}.key 2048
+openssl req -new -key ${HOSTNAME}.key -subj "/CN=system:node:${HOSTNAME}/O=system:nodes" -out ${HOSTNAME}.csr -config openssl-${HOSTNAME}.cnf
+openssl x509 -req -in ${HOSTNAME}.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out ${HOSTNAME}.crt -extensions v3_req -extfile openssl-${HOSTNAME}.cnf -days 1000
 
-openssl genrsa -out kube-proxy.key 2048
-openssl req -new -key kube-proxy.key \
-  -subj "/CN=system:kube-proxy/O=system:node-proxier" -out kube-proxy.csr
-openssl x509 -req -in kube-proxy.csr \
-    -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-proxy.crt -days 1000
 
 {
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=/var/lib/kubernetes/pki/ca.crt \
     --server=https://${LOADBALANCER}:6443 \
-    --kubeconfig=worker0.kubeconfig
+    --kubeconfig=${HOSTNAME}.kubeconfig
 
-  kubectl config set-credentials system:node:worker0 \
-    --client-certificate=/var/lib/kubernetes/pki/worker0.crt \
-    --client-key=/var/lib/kubernetes/pki/worker0.key \
-    --kubeconfig=worker0.kubeconfig
+  kubectl config set-credentials system:node:${HOSTNAME} \
+    --client-certificate=/var/lib/kubernetes/pki/${HOSTNAME}.crt \
+    --client-key=/var/lib/kubernetes/pki/${HOSTNAME}.key \
+    --kubeconfig=${HOSTNAME}.kubeconfig
 
   kubectl config set-context default \
     --cluster=kubernetes-the-hard-way \
-    --user=system:node:worker0 \
-    --kubeconfig=worker0.kubeconfig
+    --user=system:node:${HOSTNAME} \
+    --kubeconfig=${HOSTNAME}.kubeconfig
 
-  kubectl config use-context default --kubeconfig=worker0.kubeconfig
+  kubectl config use-context default --kubeconfig=${HOSTNAME}.kubeconfig
 }
+openssl genrsa -out kube-proxy.key 2048
+openssl req -new -key kube-proxy.key \
+  -subj "/CN=system:kube-proxy/O=system:node-proxier" -out kube-proxy.csr
+openssl x509 -req -in kube-proxy.csr \
+    -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-proxy.crt -days 1000
 {
   sudo mkdir -p /var/lib/kubernetes/pki/
   sudo mkdir -p /var/lib/kubelet/
