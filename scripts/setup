@@ -7,3 +7,4 @@ export PATH=`pwd`/bin:$PATH
 kubectl get --raw='/readyz?verbose' --kubeconfig=certificates/admin.kubeconfig
 kubectl get nodes --kubeconfig=certificates/admin.kubeconfig
 
+kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
